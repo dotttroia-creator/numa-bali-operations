@@ -1,19 +1,19 @@
 name: Deploy NUMA Operations Hub
- 
+
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
- 
+
 permissions:
   contents: read
   pages: write
   id-token: write
- 
+
 concurrency:
   group: "pages"
   cancel-in-progress: false
- 
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -23,20 +23,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
- 
+
       - name: Inject Supabase credentials
         run: |
-          sed -i 's|SUPABASE_URL_PLACEHOLDER|${{ secrets.SUPABASE_URL }}|g' index.html
-          sed -i 's|SUPABASE_ANON_KEY_PLACEHOLDER|${{ secrets.SUPABASE_ANON_KEY }}|g' index.html
- 
+          find . -name "index.html" | head -5
+          if [ -f "index.html" ]; then
+            sed -i 's|SUPABASE_URL_PLACEHOLDER|${{ secrets.SUPABASE_URL }}|g' index.html
+            sed -i 's|SUPABASE_ANON_KEY_PLACEHOLDER|${{ secrets.SUPABASE_ANON_KEY }}|g' index.html
+            echo "✅ Credentials injected"
+          else
+            echo "❌ index.html not found in root"
+            exit 1
+          fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
- 
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
- 
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
